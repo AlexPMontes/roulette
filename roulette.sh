@@ -12,6 +12,7 @@ grayColour="\e[0;37m\033[1m"
 
 function ctrl_c(){
   echo -e "\n\n${redColour}[!] Exiting...${endColour}\n"
+  tput cnorm
   exit 1
 }
 
@@ -30,7 +31,50 @@ function helpPanel(){
 }
 
 function martingala(){
-  echo -e "martingala"
+  echo -e "\n${yellowColour}[+]${endColour} ${grayColour}Actual money: ${blueColour}$money€"
+  echo -ne "\n${yellowColour}[+]${endColour} ${grayColour}What's your initial bet? -> " && read initial_bet
+  echo -ne "\n${yellowColour}[+]${endColour} ${grayColour}What do you want to bet on (even/odd)? -> " && read even_odd
+  echo -ne "\n${yellowColour}[+]${endColour} ${grayColour}How much benefits do you want? -> " && read objective
+  echo -e "\n${yellowColour}[+]${endColour} ${grayColour}You are going to play whith an initial bet of ${blueColour}$initial_bet ${grayColour}on ${blueColour}"$even_odd"${endColour}"
+
+  tput civis
+  
+  initial_money=$money
+  bet_num=0
+  actual_bet=$initial_bet 
+  echo -e "${yellowColour}\n[+]You start with $money€${endColour}"
+  
+  while true; do
+    if [ $money -lt $initial_bet ]; then
+      echo -e "\n${redColour}[!] You lost all your money in $bet_num games :( ..."
+      break
+    
+    elif [ $money -lt $actual_bet ]; then
+      actual_bet=$initial_bet
+
+    elif [ $money -ge $(($initial_money + $objective)) ]; then
+      echo -e "\n${greenColour}[+] Congrats!! You won $objective€ in $bet_num games :)"
+      break
+    
+    else
+      let bet_num+=1
+      let money-=$actual_bet
+      number=$(($RANDOM % 37))
+      echo -e "\nYou just bet $actual_bet€ and you have $money€"
+      
+      if [ $number -eq 0 ] || ([ $(($number%2)) -eq 0 ] && [ $even_odd == "odd" ]) || ([ $(($number%2)) -eq 1 ] && [ $even_odd == "even" ]); then
+        let actual_bet*=2
+        echo -e "\n\t${redColour}[!]The roulette says $number -- Lost${endColour}"      
+      
+      else
+        let money+=$(($actual_bet*2))
+        actual_bet=$initial_bet
+        echo -e "\n\t${greenColour}[!]The roulette says $number -- Won${endColour}"
+      fi
+      echo -e "\n${yellowColour}[+]You have $money€${endColour}"
+    fi
+  done
+  tput cnorm
 }
 
 
